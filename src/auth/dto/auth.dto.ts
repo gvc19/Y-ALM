@@ -1,10 +1,10 @@
-import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsOptional, IsDate, IsBoolean, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email: string;
+  Email: string;
 
   @ApiProperty({ example: 'password123' })
   @IsString()
@@ -13,45 +13,69 @@ export class LoginDto {
 }
 
 export class RegisterDto {
+  @ApiProperty({ example: 'johndoe' })
+  @IsString()
+  @MinLength(3)
+  username: string;
+
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email: string;
+  Email: string;
 
   @ApiProperty({ example: 'password123' })
   @IsString()
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: 'John', required: false })
-  @IsOptional()
+  @ApiProperty({ example: 'John' })
   @IsString()
-  firstName?: string;
+  First_Name: string;
 
   @ApiProperty({ example: 'Doe', required: false })
   @IsOptional()
   @IsString()
-  lastName?: string;
+  Last_Name?: string;
+
+  @ApiProperty({ example: '1990-01-01', required: false })
+  @IsOptional()
+  @IsDate()
+  dob?: Date;
 }
 
 export class UserResponseDto {
   @ApiProperty()
-  id: string;
+  Id: string;
 
   @ApiProperty()
-  email: string;
+  username: string;
 
   @ApiProperty()
-  firstName: string;
+  First_Name: string;
 
   @ApiProperty()
-  lastName: string;
+  Last_Name: string;
 
   @ApiProperty()
-  isActive: boolean;
+  Email: string;
 
   @ApiProperty()
-  createdAt: Date;
+  dob: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  Is_Active: boolean;
+
+  @ApiProperty()
+  Is_deleted: boolean;
+
+  @ApiProperty()
+  Created_at: Date;
+
+  @ApiProperty()
+  Created_by: string;
+
+  @ApiProperty()
+  Updated_at: Date;
+
+  @ApiProperty()
+  Updated_by: string;
 }

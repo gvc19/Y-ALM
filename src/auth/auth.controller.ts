@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get, Put, Delete, Patch, Param, Query, UseGuard
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, UserResponseDto } from './dto/auth.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -57,7 +58,8 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserById(@Param('id') id: string): Promise<UserResponseDto | null> {
-    return this.authService.findById(id);
+    const user = await this.authService.findById(id);
+    return user ? this.authService.transformToUserResponse(user) : null;
   }
 
   @Put(':id')
@@ -69,9 +71,9 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async updateUser(
     @Param('id') id: string,
-    @Body() updateData: Partial<RegisterDto>
+    @Body() updateUserDto: UpdateUserDto
   ): Promise<UserResponseDto | null> {
-    return this.authService.update(id, updateData);
+    return this.authService.update(id, updateUserDto);
   }
 
   @Delete(':id')

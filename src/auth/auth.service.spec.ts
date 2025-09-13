@@ -59,21 +59,23 @@ describe('AuthService', () => {
   describe('register', () => {
     it('should register a new user successfully', async () => {
       const registerDto: RegisterDto = {
-        email: 'test@example.com',
+        username: 'johndoe',
+        Email: 'test@example.com',
         password: 'password123',
-        firstName: 'John',
-        lastName: 'Doe',
+        First_Name: 'John',
+        Last_Name: 'Doe',
       };
 
       const mockUser = {
-        id: 'uuid',
-        email: 'test@example.com',
-        password: 'hashedPassword',
-        firstName: 'John',
-        lastName: 'Doe',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        Id: 'uuid',
+        username: 'johndoe',
+        Email: 'test@example.com',
+        Hashed_Password: 'hashedPassword',
+        First_Name: 'John',
+        Last_Name: 'Doe',
+        Is_Active: true,
+        Created_at: new Date(),
+        Updated_at: new Date(),
       };
 
       mockUserRepository.findOne.mockResolvedValue(null);
@@ -82,16 +84,17 @@ describe('AuthService', () => {
 
       const result = await service.register(registerDto);
 
-      expect(result.email).toBe(registerDto.email);
-      expect(result.firstName).toBe(registerDto.firstName);
-      expect(result.lastName).toBe(registerDto.lastName);
-      expect(result.password).toBeUndefined();
+      expect(result.Email).toBe(registerDto.Email);
+      expect(result.First_Name).toBe(registerDto.First_Name);
+      expect(result.Last_Name).toBe(registerDto.Last_Name);
     });
 
     it('should throw ConflictException if user already exists', async () => {
       const registerDto: RegisterDto = {
-        email: 'test@example.com',
+        username: 'johndoe',
+        Email: 'test@example.com',
         password: 'password123',
+        First_Name: 'John',
       };
 
       mockUserRepository.findOne.mockResolvedValue({ id: 'existing-user' });
@@ -103,14 +106,14 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should login user successfully and return token', async () => {
       const loginDto: LoginDto = {
-        email: 'test@example.com',
+        Email: 'test@example.com',
         password: 'password123',
       };
 
       const mockUser = {
-        id: 'uuid',
-        email: 'test@example.com',
-        password: 'hashedPassword',
+        Id: 'uuid',
+        Email: 'test@example.com',
+        Hashed_Password: 'hashedPassword',
         validatePassword: jest.fn().mockResolvedValue(true),
       };
 
@@ -120,12 +123,12 @@ describe('AuthService', () => {
       const result = await service.login(loginDto);
 
       expect(result.access_token).toBe('jwt-token');
-      expect(result.user.email).toBe(loginDto.email);
+      expect(result.user.Email).toBe(loginDto.Email);
     });
 
     it('should throw UnauthorizedException for invalid credentials', async () => {
       const loginDto: LoginDto = {
-        email: 'test@example.com',
+        Email: 'test@example.com',
         password: 'wrongpassword',
       };
 

@@ -4,6 +4,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import { LoginDto, RegisterDto, UserResponseDto } from './dto/auth.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { USER_QUERIES, buildUpdateQuery } from './sql-queries';
 
@@ -20,7 +21,7 @@ export class AuthService {
     // Check if user already exists
     const existingUser = await this.dataSource.query(
       USER_QUERIES.CHECK_USER_EXISTS,
-      [registerDto.email]
+      [registerDto.Email]
     );
 
     if (existingUser.length > 0) {
@@ -35,10 +36,12 @@ export class AuthService {
     const result = await this.dataSource.query(
       USER_QUERIES.INSERT_USER,
       [
-        registerDto.email,
+        registerDto.username,
+        registerDto.Email,
         hashedPassword,
-        registerDto.firstName || null,
-        registerDto.lastName || null,
+        registerDto.First_Name,
+        registerDto.Last_Name || null,
+        registerDto.dob || null,
         true
       ]
     );
@@ -48,13 +51,13 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<{ access_token: string; user: UserResponseDto }> {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    const user = await this.validateUser(loginDto.Email, loginDto.password);
     
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.Email, sub: user.Id };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -75,7 +78,7 @@ export class AuthService {
 
     const user = users[0];
     const bcrypt = require('bcryptjs');
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.Hashed_Password);
     
     if (isValidPassword) {
       return user;
@@ -94,7 +97,7 @@ export class AuthService {
   }
 
   transformToUserResponse(user: any): UserResponseDto {
-    const { password, ...userResponse } = user;
+    const { Hashed_Password, ...userResponse } = user;
     return userResponse as UserResponseDto;
   }
 
@@ -105,32 +108,23 @@ export class AuthService {
     return users.map(user => this.transformToUserResponse(user));
   }
 
-  async update(id: string, updateData: Partial<RegisterDto>): Promise<UserResponseDto | null> {
+  async update(id: string, updateData: UpdateUserDto): Promise<UserResponseDto | null> {
     // Check if user exists
-    const existingUser = await this.dataSource.query(
-      USER_QUERIES.CHECK_USER_EXISTS,
-      [id]
-    );
-
-    if (existingUser.length === 0) {
+    const user = await this.findById(id);
+    if (!user) {
       return null;
     }
 
-    // Build dynamic update query
+    // Prepare update fields and values for SQL
     const { updateFields, values } = buildUpdateQuery(updateData);
-
     if (updateFields.length === 0) {
       return this.findById(id);
     }
-
-    // Add id to values array
     values.push(id);
-
     const result = await this.dataSource.query(
       USER_QUERIES.UPDATE_USER(updateFields),
       values
     );
-
     return result.length > 0 ? this.transformToUserResponse(result[0]) : null;
   }
 
@@ -210,9 +204,9 @@ export class AuthService {
     const placeholders = userIds.map((_, index) => `$${index + 2}`).join(',');
     const query = `
       UPDATE users 
-      SET "isActive" = $1, "updatedAt" = NOW() 
-      WHERE id IN (${placeholders})
-      RETURNING id
+      SET "Is_Active" = $1, "Updated_at" = NOW() 
+      WHERE "Id" IN (${placeholders})
+      RETURNING "Id"
     `;
 
     const result = await this.dataSource.query(query, [isActive, ...userIds]);
