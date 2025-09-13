@@ -7,7 +7,7 @@ export class CreateUsersTable1700000000000 implements MigrationInterface {
         name: 'users',
         columns: [
           {
-            name: 'Id',
+            name: 'id',
             type: 'uuid',
             isPrimary: true,
             generationStrategy: 'uuid',
@@ -17,66 +17,71 @@ export class CreateUsersTable1700000000000 implements MigrationInterface {
             name: 'username',
             type: 'varchar',
             length: '50',
-            isNullable: false,
-          },
-          {
-            name: 'First_Name',
-            type: 'varchar',
-            length: '50',
-            isNullable: false,
-          },
-          {
-            name: 'Last_Name',
-            type: 'varchar',
-            length: '50',
-            isNullable: true,
-          },
-          {
-            name: 'Email',
-            type: 'varchar',
-            length: '50',
-            isNullable: false,
             isUnique: true,
+            isNullable: false,
           },
           {
-            name: 'Hashed_Password',
+            name: 'firstName',
             type: 'varchar',
             length: '50',
             isNullable: false,
           },
           {
-            name: 'dob',
-            type: 'timestamp',
+            name: 'lastName',
+            type: 'varchar',
+            length: '50',
             isNullable: true,
           },
           {
-            name: 'Is_Active',
-            type: 'boolean',
-            default: false,
+            name: 'email',
+            type: 'varchar',
+            length: '100',
+            isUnique: true,
+            isNullable: false,
           },
           {
-            name: 'Is_deleted',
-            type: 'boolean',
-            default: false,
+            name: 'password',
+            type: 'varchar',
+            length: '255',
+            isNullable: false,
           },
           {
-            name: 'Created_at',
+            name: 'dateOfBirth',
+            type: 'date',
+            isNullable: true,
+          },
+          {
+            name: 'isActive',
+            type: 'boolean',
+            default: true,
+            isNullable: false,
+          },
+          {
+            name: 'isDeleted',
+            type: 'boolean',
+            default: false,
+            isNullable: false,
+          },
+          {
+            name: 'createdAt',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
+            isNullable: false,
           },
           {
-            name: 'Created_by',
+            name: 'createdBy',
             type: 'uuid',
             isNullable: true,
           },
           {
-            name: 'Updated_at',
+            name: 'updatedAt',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
             onUpdate: 'CURRENT_TIMESTAMP',
+            isNullable: false,
           },
           {
-            name: 'Updated_by',
+            name: 'updatedBy',
             type: 'uuid',
             isNullable: true,
           },
@@ -87,6 +92,27 @@ export class CreateUsersTable1700000000000 implements MigrationInterface {
 
     // Create uuid-ossp extension if it doesn't exist
     await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+
+    // Create indexes for better performance
+    await queryRunner.query(`
+      CREATE INDEX idx_users_email ON users(email);
+    `);
+    
+    await queryRunner.query(`
+      CREATE INDEX idx_users_username ON users(username);
+    `);
+    
+    await queryRunner.query(`
+      CREATE INDEX idx_users_is_active ON users("isActive");
+    `);
+    
+    await queryRunner.query(`
+      CREATE INDEX idx_users_is_deleted ON users("isDeleted");
+    `);
+    
+    await queryRunner.query(`
+      CREATE INDEX idx_users_created_at ON users("createdAt");
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
