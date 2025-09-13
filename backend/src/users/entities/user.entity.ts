@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
+import { UserRoleMapping } from '../../user-roles/entities/user-role-mapping.entity';
 
 @Entity('users')
 export class User {
@@ -43,6 +44,9 @@ export class User {
 
   @Column({ nullable: true })
   updatedBy: string;
+
+  @OneToMany(() => UserRoleMapping, userRoleMapping => userRoleMapping.user)
+  userRoleMappings: UserRoleMapping[];
 
   @BeforeInsert()
   @BeforeUpdate()

@@ -221,4 +221,31 @@ export class UsersController {
   ): Promise<{ success: boolean; updatedCount: number }> {
     return this.usersService.bulkUpdateStatus(body.ids, body.isActive);
   }
+
+  @Get(':id/with-roles')
+  @ApiOperation({ summary: 'Get user with roles' })
+  @ApiResponse({
+    status: 200,
+    description: 'User with roles retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async getUserWithRoles(@Param('id') id: string) {
+    return this.usersService.getUserWithRoles(id);
+  }
+
+  @Get('by-role/:roleId')
+  @ApiOperation({ summary: 'Get users by role' })
+  @ApiResponse({
+    status: 200,
+    description: 'Users with specific role retrieved successfully',
+    type: [UserResponseDto],
+  })
+  @ApiParam({ name: 'roleId', description: 'Role ID' })
+  async getUsersByRole(@Param('roleId') roleId: string): Promise<UserResponseDto[]> {
+    return this.usersService.getUsersByRole(roleId);
+  }
 }

@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserQueryDto } from './dto/user-query.dto';
+import { UserRoleMapping } from '../user-roles/entities/user-role-mapping.entity';
 import { plainToClass } from 'class-transformer';
 
 @Injectable()
@@ -13,6 +14,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(UserRoleMapping)
+    private userRoleMappingRepository: Repository<UserRoleMapping>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -255,8 +258,45 @@ export class UsersService {
     };
   }
 
+  async getUserWithRoles(id: string): Promise<UserResponseDto & { roles: any[] }> {
+    const user = await this.userRepository.findOne({
+      where: { id, isDeleted: false },
+      relations: ['userRoleMappings', 'userRoleMappings.role']
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    const userResponse = this.transformToResponseDto(user);
+    const roles = user.userRoleMappings
+      .filter(mapping => !mapping.isDeleted && mapping.isActive)
+      .map(mapping => ({
+        id: mapping.role.id,
+        name: mapping.role.name,
+        assignedAt: mapping.createdAt,
+        isActive: mapping.isActive
+      }));
+
+    return {
+      ...userResponse,
+      roles
+    };
+  }
+
+  async getUsersByRole(roleId: string): Promise<UserResponseDto[]> {
+    const mappings = await this.userRoleMappingRepository.find({
+      where: { roleId, isDeleted: false, isActive: true },
+      relations: ['user']
+    });
+
+    return mappings
+      .filter(mapping => !mapping.user.isDeleted)
+      .map(mapping => this.transformToResponseDto(mapping.user));
+  }
+
   private transformToResponseDto(user: User): UserResponseDto {
-    const { password, ...userWithoutPassword } = user;
+    const { password, userRoleMappings, ...userWithoutPassword } = user;
     return userWithoutPassword as UserResponseDto;
   }
 }
