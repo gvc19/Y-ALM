@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, FindManyOptions } from 'typeorm';
+import { Repository, Like, FindManyOptions, In } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -35,7 +35,7 @@ export class UsersService {
     // Create new user
     const user = this.userRepository.create({
       ...createUserDto,
-      dateOfBirth: createUserDto.dateOfBirth ? new Date(createUserDto.dateOfBirth) : null,
+      dateOfBirth: createUserDto.dateOfBirth ? new Date(createUserDto.dateOfBirth) : undefined,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -245,29 +245,18 @@ export class UsersService {
     }
 
     const result = await this.userRepository.update(
-      { id: ids[0] as any, isDeleted: false }, // TypeORM limitation workaround
+      { id: In(ids), isDeleted: false },
       { isActive, updatedAt: new Date() }
     );
 
-    // For multiple IDs, we need to update each one individually due to TypeORM limitations
-    let updatedCount = 0;
-    for (const id of ids) {
-      const updateResult = await this.userRepository.update(
-        { id, isDeleted: false },
-        { isActive, updatedAt: new Date() }
-      );
-      updatedCount += updateResult.affected || 0;
-    }
-
     return {
       success: true,
-      updatedCount,
+      updatedCount: result.affected || 0,
     };
   }
 
   private transformToResponseDto(user: User): UserResponseDto {
-    return plainToClass(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword as UserResponseDto;
   }
 }

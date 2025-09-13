@@ -1,4 +1,4 @@
-import { PartialType, OmitType } from '@nestjs/swagger';
+import { PartialType, OmitType, ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEmail, IsBoolean, IsDateString, MinLength } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
 
